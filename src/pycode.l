@@ -106,6 +106,7 @@ struct pycodeYY_state
   bool          noSuiteFound = FALSE;
   int           stringContext = 0;
   bool          insideSpecialComment = false;
+  int           genericBracketDepth = 0;
 
   std::stack<yy_size_t> indents;  //!< Tracks indentation levels for scoping in python
 
@@ -316,13 +317,13 @@ FLOWKW            ("or"|"and"|"is"|"not"|"print"|"for"|"in"|"if"|"try"|"except"|
                                       // probably be more strict
                                       // about what to accept.
 
-                                      if (yyextra->genericBracketDepth= == 0) {
+                                      if (yyextra->genericBracketDepth == 0) {
                                         yyextra->curClassBases.emplace_back(yytext);
                                         yyextra->insideBody = true;
                                         generateClassOrGlobalLink(yyscanner,*yyextra->code,yytext);
                                         yyextra->insideBody = false;
                                       } else {
-                                        codify(yyscanner, yytext)
+                                        codify(yyscanner, yytext);
                                       }
 
                                     }
