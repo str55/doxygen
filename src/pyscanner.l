@@ -122,6 +122,7 @@ struct pyscannerYY_state
   int                     decoratorRound = 0;
   bool                    checkDupEntry = false;
   bool                    firstPass = true;
+  int                     genericBracketDepth = 0;
 };
 
 //-----------------------------------------------------------------------------

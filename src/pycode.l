@@ -292,6 +292,15 @@ FLOWKW            ("or"|"and"|"is"|"not"|"print"|"for"|"in"|"if"|"try"|"except"|
    ({BB}|[(,)])                     {
                                       codify(yyscanner,yytext);
                                     }
+   "["                              {
+                                     yyextra->genericBracketDepth++;
+                                     codify(yyscanner, yytext);
+                                    }
+   "]"                              {
+                                     if (yyextra->genericBracketDepth > 0)
+                                       yyextra->genericBracketDepth--;
+                                     codify(yyscanner, yytext);
+                                    }
 
    ({IDENTIFIER}".")*{IDENTIFIER}   {
                                       // The parser
@@ -307,11 +316,15 @@ FLOWKW            ("or"|"and"|"is"|"not"|"print"|"for"|"in"|"if"|"try"|"except"|
                                       // probably be more strict
                                       // about what to accept.
 
-                                      yyextra->curClassBases.emplace_back(yytext);
-                                      yyextra->insideBody = true;
-                                      generateClassOrGlobalLink(yyscanner,*yyextra->code,yytext);
-                                      yyextra->insideBody = false;
-                                      // codify(yyscanner,yytext);
+                                      if (yyextra->genericBracketDepth= == 0) {
+                                        yyextra->curClassBases.emplace_back(yytext);
+                                        yyextra->insideBody = true;
+                                        generateClassOrGlobalLink(yyscanner,*yyextra->code,yytext);
+                                        yyextra->insideBody = false;
+                                      } else {
+                                        codify(yyscanner, yytext)
+                                      }
+
                                     }
 
     ":"                             {
