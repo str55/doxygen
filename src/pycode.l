@@ -107,6 +107,7 @@ struct pycodeYY_state
   int           stringContext = 0;
   bool          insideSpecialComment = false;
   int           genericBracketDepth = 0;
+  int parenDepth = 0;
 
   std::stack<yy_size_t> indents;  //!< Tracks indentation levels for scoping in python
 
@@ -290,17 +291,38 @@ FLOWKW            ("or"|"and"|"is"|"not"|"print"|"for"|"in"|"if"|"try"|"except"|
                                     }
 
 <ClassInheritance>{
-   ({BB}|[(,)])                     {
+   ({BB}|[,])                     {
                                       codify(yyscanner,yytext);
+                                    }
+   "("                              {
+                                      yyextra->parenDepth++;
+                                      codify(yyscanner,yytext);
+                                      std::cout << "( detected: Count =";
+                                      std::cout << yyextra->parenDepth;
+                                      std::cout << "\n";
+                                    }
+   ")"                              {
+                                     if (yyextra->parenDepth > 0)
+                                       yyextra->parenDepth--;
+                                     codify(yyscanner,yytext); 
+                                     std::cout << ") detected: Count =";
+                                     std::cout << yyextra->parenDepth;
+                                     std::cout << "\n";
                                     }
    "["                              {
                                      yyextra->genericBracketDepth++;
                                      codify(yyscanner, yytext);
+                                     std::cout << "[ detected: Count =";
+                                     std::cout << yyextra->genericBracketDepth;
+                                     std::cout << "\n";
                                     }
    "]"                              {
                                      if (yyextra->genericBracketDepth > 0)
                                        yyextra->genericBracketDepth--;
                                      codify(yyscanner, yytext);
+                                     std::cout << "] detected: Count =";
+                                     std::cout << yyextra->genericBracketDepth;
+                                     std::cout << "\n";
                                     }
 
    ({IDENTIFIER}".")*{IDENTIFIER}   {
@@ -316,8 +338,14 @@ FLOWKW            ("or"|"and"|"is"|"not"|"print"|"for"|"in"|"if"|"try"|"except"|
                                       // This is bad - it should
                                       // probably be more strict
                                       // about what to accept.
+                                      std::cout << yytext;
+                                      std::cout << " ";
+                                      std::cout << yyextra->parenDepth;
+                                      std::cout << " ";
+                                      std::cout << yyextra->genericBracketDepth;
+                                      std::cout << "\n";
 
-                                      if (yyextra->genericBracketDepth == 0) {
+                                      if (yyextra->genericBracketDepth == 0 && yyextra->parenDepth == 1) {
                                         yyextra->curClassBases.emplace_back(yytext);
                                         yyextra->insideBody = true;
                                         generateClassOrGlobalLink(yyscanner,*yyextra->code,yytext);
